@@ -105,17 +105,31 @@ func albumsHandler(w http.ResponseWriter, r *http.Request) {
 		artist := strings.ToLower(q.Get("artist"))
 		yearStr := q.Get("year")
 
+		hasFilters := idStr != "" || genre != "" || artist != "" || yearStr != ""
+
+		// Validar tipos antes de filtrar
+		var filterID, filterYear int
+		if idStr != "" {
+			id, err := strconv.Atoi(idStr)
+			if err != nil {
+				writeError(w, http.StatusBadRequest, "Query parameter 'id' must be an integer")
+				return
+			}
+			filterID = id
+		}
+		if yearStr != "" {
+			year, err := strconv.Atoi(yearStr)
+			if err != nil {
+				writeError(w, http.StatusBadRequest, "Query parameter 'year' must be an integer")
+				return
+			}
+			filterYear = year
+		}
+
 		result := make([]Album, 0)
 		for _, a := range albums {
-			if idStr != "" {
-				id, err := strconv.Atoi(idStr)
-				if err != nil {
-					writeError(w, http.StatusBadRequest, "Query parameter 'id' must be an integer")
-					return
-				}
-				if a.ID != id {
-					continue
-				}
+			if idStr != "" && a.ID != filterID {
+				continue
 			}
 			if genre != "" && strings.ToLower(a.Genre) != genre {
 				continue
@@ -123,18 +137,17 @@ func albumsHandler(w http.ResponseWriter, r *http.Request) {
 			if artist != "" && !strings.Contains(strings.ToLower(a.Artist), artist) {
 				continue
 			}
-			if yearStr != "" {
-				year, err := strconv.Atoi(yearStr)
-				if err != nil {
-					writeError(w, http.StatusBadRequest, "Query parameter 'year' must be an integer")
-					return
-				}
-				if a.Year != year {
-					continue
-				}
+			if yearStr != "" && a.Year != filterYear {
+				continue
 			}
 			result = append(result, a)
 		}
+
+		if hasFilters && len(result) == 0 {
+			writeError(w, http.StatusNotFound, "No albums found matching the given filters")
+			return
+		}
+
 		writeJSON(w, http.StatusOK, result)
 
 	case http.MethodPost:

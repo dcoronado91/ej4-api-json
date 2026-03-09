@@ -112,12 +112,73 @@ func albumsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func albumByIDHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Album ID must be an integer", http.StatusBadRequest)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		for _, a := range albums {
+			if a.ID == id {
+				writeJSON(w, http.StatusOK, a)
+				return
+			}
+		}
+		http.Error(w, "Album not found", http.StatusNotFound)
+
+	case http.MethodPut:
+		var updated Album
+		if err := json.NewDecoder(r.Body).Decode(&updated); err != nil {
+			http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+			return
+		}
+
+		for i, a := range albums {
+			if a.ID == id {
+				updated.ID = id
+				if updated.Status == "" {
+					updated.Status = "active"
+				}
+				albums[i] = updated
+				if err := saveAlbums(); err != nil {
+					http.Error(w, "Failed to persist data", http.StatusInternalServerError)
+					return
+				}
+				writeJSON(w, http.StatusOK, updated)
+				return
+			}
+		}
+		http.Error(w, "Album not found", http.StatusNotFound)
+
+	case http.MethodDelete:
+		for i, a := range albums {
+			if a.ID == id {
+				albums = append(albums[:i], albums[i+1:]...)
+				if err := saveAlbums(); err != nil {
+					http.Error(w, "Failed to persist data", http.StatusInternalServerError)
+					return
+				}
+				writeJSON(w, http.StatusOK, Message{Message: "Album deleted successfully"})
+				return
+			}
+		}
+		http.Error(w, "Album not found", http.StatusNotFound)
+
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	}
+}
+
 func main() {
 	loadAlbums()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/ping", pingHandler)
 	mux.HandleFunc("/api/albums", albumsHandler)
+	mux.HandleFunc("/api/albums/{id}", albumByIDHandler)
 
 	log.Println("Albums API running on :24732")
 	log.Fatal(http.ListenAndServe(":24732", mux))

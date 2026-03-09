@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Album struct {
@@ -65,26 +66,43 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 func albumsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		idStr := r.URL.Query().Get("id")
-		if idStr == "" {
-			writeJSON(w, http.StatusOK, albums)
-			return
-		}
+		q := r.URL.Query()
+		idStr := q.Get("id")
+		genre := strings.ToLower(q.Get("genre"))
+		artist := strings.ToLower(q.Get("artist"))
+		yearStr := q.Get("year")
 
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			http.Error(w, "Invalid id parameter", http.StatusBadRequest)
-			return
-		}
-
+		result := make([]Album, 0)
 		for _, a := range albums {
-			if a.ID == id {
-				writeJSON(w, http.StatusOK, a)
-				return
+			if idStr != "" {
+				id, err := strconv.Atoi(idStr)
+				if err != nil {
+					http.Error(w, "Invalid id parameter", http.StatusBadRequest)
+					return
+				}
+				if a.ID != id {
+					continue
+				}
 			}
+			if genre != "" && strings.ToLower(a.Genre) != genre {
+				continue
+			}
+			if artist != "" && !strings.Contains(strings.ToLower(a.Artist), artist) {
+				continue
+			}
+			if yearStr != "" {
+				year, err := strconv.Atoi(yearStr)
+				if err != nil {
+					http.Error(w, "Invalid year parameter", http.StatusBadRequest)
+					return
+				}
+				if a.Year != year {
+					continue
+				}
+			}
+			result = append(result, a)
 		}
-
-		http.Error(w, "Album not found", http.StatusNotFound)
+		writeJSON(w, http.StatusOK, result)
 
 	case http.MethodPost:
 		var album Album
@@ -148,6 +166,43 @@ func albumByIDHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				writeJSON(w, http.StatusOK, updated)
+				return
+			}
+		}
+		http.Error(w, "Album not found", http.StatusNotFound)
+
+	case http.MethodPatch:
+		var patch map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&patch); err != nil {
+			http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+			return
+		}
+
+		for i, a := range albums {
+			if a.ID == id {
+				if v, ok := patch["name"].(string); ok && v != "" {
+					albums[i].Name = v
+				}
+				if v, ok := patch["artist"].(string); ok && v != "" {
+					albums[i].Artist = v
+				}
+				if v, ok := patch["genre"].(string); ok && v != "" {
+					albums[i].Genre = v
+				}
+				if v, ok := patch["status"].(string); ok && v != "" {
+					albums[i].Status = v
+				}
+				if v, ok := patch["year"].(float64); ok && v >= 1900 {
+					albums[i].Year = int(v)
+				}
+				if v, ok := patch["length"].(float64); ok && v > 0 {
+					albums[i].Length = int(v)
+				}
+				if err := saveAlbums(); err != nil {
+					http.Error(w, "Failed to persist data", http.StatusInternalServerError)
+					return
+				}
+				writeJSON(w, http.StatusOK, albums[i])
 				return
 			}
 		}

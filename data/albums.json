@@ -88,14 +88,5 @@
         "year": 2020,
         "genre": "Alternative Rock",
         "status": "active"
-    },
-    {
-        "id": 11,
-        "name": "TestAlbum Updated",
-        "artist": "TestArtist Updated",
-        "length": 35,
-        "year": 2023,
-        "genre": "Indie",
-        "status": "inactive"
     }
 ]

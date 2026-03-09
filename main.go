@@ -22,7 +22,8 @@ type Message struct {
 	Message string `json:"message"`
 }
 
-var albums []Album
+var albums []Album // Almacena los álbumes en memoria
+var nextID int     // Chequea el siguiente ID disponible (para POST)
 
 func loadAlbums() {
 	file, err := os.Open("data/albums.json")
@@ -35,6 +36,20 @@ func loadAlbums() {
 	if err != nil {
 		log.Fatal("Error parsing JSON:", err)
 	}
+
+	for _, a := range albums {
+		if a.ID >= nextID {
+			nextID = a.ID + 1
+		}
+	}
+}
+
+func saveAlbums() error {
+	data, err := json.MarshalIndent(albums, "", "    ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile("data/albums.json", data, 0644)
 }
 
 func writeJSON(w http.ResponseWriter, status int, payload any) {
@@ -48,31 +63,53 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func albumsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	idStr := r.URL.Query().Get("id")
-	if idStr == "" {
-		writeJSON(w, http.StatusOK, albums)
-		return
-	}
-
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		http.Error(w, "Invalid id parameter", http.StatusBadRequest)
-		return
-	}
-
-	for _, a := range albums {
-		if a.ID == id {
-			writeJSON(w, http.StatusOK, a)
+	switch r.Method {
+	case http.MethodGet:
+		idStr := r.URL.Query().Get("id")
+		if idStr == "" {
+			writeJSON(w, http.StatusOK, albums)
 			return
 		}
-	}
 
-	http.Error(w, "Album not found", http.StatusNotFound)
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid id parameter", http.StatusBadRequest)
+			return
+		}
+
+		for _, a := range albums {
+			if a.ID == id {
+				writeJSON(w, http.StatusOK, a)
+				return
+			}
+		}
+
+		http.Error(w, "Album not found", http.StatusNotFound)
+
+	case http.MethodPost:
+		var album Album
+		if err := json.NewDecoder(r.Body).Decode(&album); err != nil {
+			http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+			return
+		}
+
+		album.ID = nextID
+		nextID++
+		if album.Status == "" {
+			album.Status = "active"
+		}
+		albums = append(albums, album)
+
+		if err := saveAlbums(); err != nil {
+			http.Error(w, "Failed to persist data", http.StatusInternalServerError)
+			return
+		}
+
+		writeJSON(w, http.StatusCreated, album)
+
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	}
 }
 
 func main() {

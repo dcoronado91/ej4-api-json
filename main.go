@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 type Album struct {
@@ -28,6 +29,7 @@ func loadAlbums() {
 	if err != nil {
 		log.Fatal("Error reading file:", err)
 	}
+	defer file.Close()
 
 	err = json.NewDecoder(file).Decode(&albums)
 	if err != nil {
@@ -35,23 +37,51 @@ func loadAlbums() {
 	}
 }
 
-func pingHandler(w http.ResponseWriter, r *http.Request) {
-	response := Message{Message: "pong"}
+func writeJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(payload)
+}
+
+func pingHandler(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, Message{Message: "pong"})
 }
 
 func albumsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(albums)
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		writeJSON(w, http.StatusOK, albums)
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid id parameter", http.StatusBadRequest)
+		return
+	}
+
+	for _, a := range albums {
+		if a.ID == id {
+			writeJSON(w, http.StatusOK, a)
+			return
+		}
+	}
+
+	http.Error(w, "Album not found", http.StatusNotFound)
 }
 
 func main() {
 	loadAlbums()
 
-	http.HandleFunc("api/ping", pingHandler)
-	http.HandleFunc("api/albums", albumsHandler)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/ping", pingHandler)
+	mux.HandleFunc("/api/albums", albumsHandler)
 
-	log.Println("Server running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Albums API running on :24732")
+	log.Fatal(http.ListenAndServe(":24732", mux))
 }

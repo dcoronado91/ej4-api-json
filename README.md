@@ -97,7 +97,7 @@ Todos los errores retornan JSON estructurado:
 ### DELETE — Eliminar álbum (request)
 ![DELETE álbum](docs/screenshots/delete.png)
 
-### DELETE — Verificación tras eliminar
+### DELETE — Method Not Allowed
 ![DELETE verificación](docs/screenshots/delete2.png)
 
 ### Error — 404 Not Found

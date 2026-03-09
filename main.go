@@ -23,6 +23,12 @@ type Message struct {
 	Message string `json:"message"`
 }
 
+// Manejo de errores JSON
+type ErrorResponse struct {
+	Error string `json:"error"`
+	Code  int    `json:"code"`
+}
+
 var albums []Album // Almacena los álbumes en memoria
 var nextID int     // Chequea el siguiente ID disponible (para POST)
 
@@ -59,6 +65,29 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	json.NewEncoder(w).Encode(payload)
 }
 
+func writeError(w http.ResponseWriter, status int, message string) {
+	writeJSON(w, status, ErrorResponse{Error: message, Code: status})
+}
+
+func validateAlbum(album Album) string {
+	if album.Name == "" {
+		return "Field 'name' is required"
+	}
+	if album.Artist == "" {
+		return "Field 'artist' is required"
+	}
+	if album.Genre == "" {
+		return "Field 'genre' is required"
+	}
+	if album.Year < 1900 || album.Year > 2100 {
+		return "Field 'year' must be between 1900 and 2100"
+	}
+	if album.Length <= 0 {
+		return "Field 'length' must be a positive number"
+	}
+	return ""
+}
+
 func pingHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, Message{Message: "pong"})
 }
@@ -77,7 +106,7 @@ func albumsHandler(w http.ResponseWriter, r *http.Request) {
 			if idStr != "" {
 				id, err := strconv.Atoi(idStr)
 				if err != nil {
-					http.Error(w, "Invalid id parameter", http.StatusBadRequest)
+					writeError(w, http.StatusBadRequest, "Query parameter 'id' must be an integer")
 					return
 				}
 				if a.ID != id {
@@ -93,7 +122,7 @@ func albumsHandler(w http.ResponseWriter, r *http.Request) {
 			if yearStr != "" {
 				year, err := strconv.Atoi(yearStr)
 				if err != nil {
-					http.Error(w, "Invalid year parameter", http.StatusBadRequest)
+					writeError(w, http.StatusBadRequest, "Query parameter 'year' must be an integer")
 					return
 				}
 				if a.Year != year {
@@ -107,7 +136,12 @@ func albumsHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		var album Album
 		if err := json.NewDecoder(r.Body).Decode(&album); err != nil {
-			http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+			writeError(w, http.StatusBadRequest, "Invalid JSON body")
+			return
+		}
+
+		if msg := validateAlbum(album); msg != "" {
+			writeError(w, http.StatusBadRequest, msg)
 			return
 		}
 
@@ -119,21 +153,21 @@ func albumsHandler(w http.ResponseWriter, r *http.Request) {
 		albums = append(albums, album)
 
 		if err := saveAlbums(); err != nil {
-			http.Error(w, "Failed to persist data", http.StatusInternalServerError)
+			writeError(w, http.StatusInternalServerError, "Failed to persist data")
 			return
 		}
 
 		writeJSON(w, http.StatusCreated, album)
 
 	default:
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")
 	}
 }
 
 func albumByIDHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Album ID must be an integer", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Album ID must be an integer")
 		return
 	}
 
@@ -145,12 +179,17 @@ func albumByIDHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		http.Error(w, "Album not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Album not found")
 
 	case http.MethodPut:
 		var updated Album
 		if err := json.NewDecoder(r.Body).Decode(&updated); err != nil {
-			http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+			writeError(w, http.StatusBadRequest, "Invalid JSON body")
+			return
+		}
+
+		if msg := validateAlbum(updated); msg != "" {
+			writeError(w, http.StatusBadRequest, msg)
 			return
 		}
 
@@ -162,19 +201,19 @@ func albumByIDHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				albums[i] = updated
 				if err := saveAlbums(); err != nil {
-					http.Error(w, "Failed to persist data", http.StatusInternalServerError)
+					writeError(w, http.StatusInternalServerError, "Failed to persist data")
 					return
 				}
 				writeJSON(w, http.StatusOK, updated)
 				return
 			}
 		}
-		http.Error(w, "Album not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Album not found")
 
 	case http.MethodPatch:
 		var patch map[string]any
 		if err := json.NewDecoder(r.Body).Decode(&patch); err != nil {
-			http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+			writeError(w, http.StatusBadRequest, "Invalid JSON body")
 			return
 		}
 
@@ -199,31 +238,31 @@ func albumByIDHandler(w http.ResponseWriter, r *http.Request) {
 					albums[i].Length = int(v)
 				}
 				if err := saveAlbums(); err != nil {
-					http.Error(w, "Failed to persist data", http.StatusInternalServerError)
+					writeError(w, http.StatusInternalServerError, "Failed to persist data")
 					return
 				}
 				writeJSON(w, http.StatusOK, albums[i])
 				return
 			}
 		}
-		http.Error(w, "Album not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Album not found")
 
 	case http.MethodDelete:
 		for i, a := range albums {
 			if a.ID == id {
 				albums = append(albums[:i], albums[i+1:]...)
 				if err := saveAlbums(); err != nil {
-					http.Error(w, "Failed to persist data", http.StatusInternalServerError)
+					writeError(w, http.StatusInternalServerError, "Failed to persist data")
 					return
 				}
 				writeJSON(w, http.StatusOK, Message{Message: "Album deleted successfully"})
 				return
 			}
 		}
-		http.Error(w, "Album not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Album not found")
 
 	default:
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")
 	}
 }
 

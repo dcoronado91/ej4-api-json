@@ -82,7 +82,7 @@ Todos los errores retornan JSON estructurado:
 ### GET — Query parameter `?id=1`
 ![GET por query param](docs/screenshots/get-query-param.png)
 
-### GET — Path parameter `/api/albums/1`
+### GET — Path parameter `/api/albums`
 ![GET por path param](docs/screenshots/get-path-param.png)
 
 ### POST — Crear álbum

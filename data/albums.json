@@ -1,12 +1,101 @@
 [
-    { "id": 1, "name": "Bocanada", "artist": "Gustavo Cerati", "length": 63, "year": 1999, "genre": "Alternative Rock", "status": "active" },
-    { "id": 2, "name": "Dynamo", "artist": "Soda Stereo", "length": 68, "year": 1992, "genre": "Alternative Rock", "status": "active" },
-    { "id": 3, "name": "Debut", "artist": "Björk", "length": 54, "year": 1993, "genre": "Art Pop", "status": "active" },
-    { "id": 4, "name": "OK Computer", "artist": "Radiohead", "length": 53, "year": 1997, "genre": "Alternative Rock", "status": "active" },
-    { "id": 5, "name": "LP!", "artist": "JPEGMAFIA", "length": 45, "year": 2021, "genre": "Experimental Hip Hop", "status": "active" },
-    { "id": 6, "name": "The Powers That B", "artist": "Death Grips", "length": 81, "year": 2015, "genre": "Experimental Hip Hop", "status": "active" },
-    { "id": 7, "name": "De Todas las Flores", "artist": "Natalia Lafourcade", "length": 66, "year": 2022, "genre": "Latin Pop", "status": "active" },
-    { "id": 8, "name": "YHLQMDLG", "artist": "Bad Bunny", "length": 65, "year": 2020, "genre": "Reggaeton", "status": "active" },
-    { "id": 9, "name": "Wish You Were Here", "artist": "Pink Floyd", "length": 44, "year": 1975, "genre": "Progressive Rock", "status": "active" },
-    { "id": 10, "name": "The New Abnormal", "artist": "The Strokes", "length": 45, "year": 2020, "genre": "Alternative Rock", "status": "active" }
+    {
+        "id": 1,
+        "name": "Bocanada",
+        "artist": "Gustavo Cerati",
+        "length": 63,
+        "year": 1999,
+        "genre": "Alternative Rock",
+        "status": "active"
+    },
+    {
+        "id": 2,
+        "name": "Dynamo",
+        "artist": "Soda Stereo",
+        "length": 68,
+        "year": 1992,
+        "genre": "Alternative Rock",
+        "status": "active"
+    },
+    {
+        "id": 3,
+        "name": "Debut",
+        "artist": "Björk",
+        "length": 54,
+        "year": 1993,
+        "genre": "Art Pop",
+        "status": "active"
+    },
+    {
+        "id": 4,
+        "name": "OK Computer",
+        "artist": "Radiohead",
+        "length": 53,
+        "year": 1997,
+        "genre": "Alternative Rock",
+        "status": "active"
+    },
+    {
+        "id": 5,
+        "name": "LP!",
+        "artist": "JPEGMAFIA",
+        "length": 45,
+        "year": 2021,
+        "genre": "Experimental Hip Hop",
+        "status": "active"
+    },
+    {
+        "id": 6,
+        "name": "The Powers That B",
+        "artist": "Death Grips",
+        "length": 81,
+        "year": 2015,
+        "genre": "Experimental Hip Hop",
+        "status": "active"
+    },
+    {
+        "id": 7,
+        "name": "De Todas las Flores",
+        "artist": "Natalia Lafourcade",
+        "length": 66,
+        "year": 2022,
+        "genre": "Latin Pop",
+        "status": "active"
+    },
+    {
+        "id": 8,
+        "name": "YHLQMDLG",
+        "artist": "Bad Bunny",
+        "length": 65,
+        "year": 2020,
+        "genre": "Reggaeton",
+        "status": "active"
+    },
+    {
+        "id": 9,
+        "name": "Wish You Were Here",
+        "artist": "Pink Floyd",
+        "length": 44,
+        "year": 1975,
+        "genre": "Progressive Rock",
+        "status": "active"
+    },
+    {
+        "id": 10,
+        "name": "The New Abnormal",
+        "artist": "The Strokes",
+        "length": 45,
+        "year": 2020,
+        "genre": "Alternative Rock",
+        "status": "active"
+    },
+    {
+        "id": 11,
+        "name": "TestAlbum",
+        "artist": "TestArtist",
+        "length": 20,
+        "year": 2023,
+        "genre": "TestGenre",
+        "status": "active"
+    }
 ]

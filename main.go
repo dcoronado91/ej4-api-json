@@ -30,7 +30,6 @@ type ErrorResponse struct {
 }
 
 var albums []Album // Almacena los álbumes en memoria
-var nextID int     // Chequea el siguiente ID disponible (para POST)
 
 func loadAlbums() {
 	file, err := os.Open("data/albums.json")
@@ -43,12 +42,17 @@ func loadAlbums() {
 	if err != nil {
 		log.Fatal("Error parsing JSON:", err)
 	}
+}
 
+// Calcula el siguiente ID disponible basado en el estado actual del slice
+func getNextID() int {
+	max := 0
 	for _, a := range albums {
-		if a.ID >= nextID {
-			nextID = a.ID + 1
+		if a.ID > max {
+			max = a.ID
 		}
 	}
+	return max + 1
 }
 
 func saveAlbums() error {
@@ -145,8 +149,7 @@ func albumsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		album.ID = nextID
-		nextID++
+		album.ID = getNextID()
 		if album.Status == "" {
 			album.Status = "active"
 		}

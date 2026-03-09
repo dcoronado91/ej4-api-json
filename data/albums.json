@@ -91,11 +91,11 @@
     },
     {
         "id": 11,
-        "name": "TestAlbum",
-        "artist": "TestArtist",
-        "length": 20,
+        "name": "TestAlbum Updated",
+        "artist": "TestArtist Updated",
+        "length": 35,
         "year": 2023,
-        "genre": "TestGenre",
+        "genre": "Indie",
         "status": "active"
     }
 ]

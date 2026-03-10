@@ -2,6 +2,8 @@
 
 API REST construida en Go (librería estándar) para gestionar una colección de álbumes musicales.
 
+> **🔗 API en vivo:** https://bombardeen-palencia.xyz/derek/ej4-api-json/api
+
 ## Tema
 
 Colección de álbumes de música. Cada álbum contiene: `id`, `name`, `artist`, `length` (duración en minutos), `year`, `genre` y `status`.
@@ -76,13 +78,16 @@ Todos los errores retornan JSON estructurado:
 
 ## Evidencia de pruebas
 
-### Servidor corriendo en el puerto 24732
-![Servidor corriendo](docs/screenshots/server.png)
+### Servidor corriendo localmente en el puerto 24732
+![Servidor local](docs/screenshots/server.png)
+
+### Servidor corriendo en el server
+![Servidor corriendo en dominio](docs/screenshots/server2.png)
 
 ### GET — Query parameter `?id=1`
 ![GET por query param](docs/screenshots/get-query-param.png)
 
-### GET — Path parameter `/api/albums`
+### GET — Path parameter `/api/albums/{id}`
 ![GET por path param](docs/screenshots/get-path-param.png)
 
 ### POST — Crear álbum

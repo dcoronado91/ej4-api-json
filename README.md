@@ -2,7 +2,7 @@
 
 API REST construida en Go (librería estándar) para gestionar una colección de álbumes musicales.
 
-> **🔗 API en vivo:** https://bombardeen-palencia.xyz/derek/ej4-api-json/api
+> **🔗 API en vivo:** https://bombardeen-palencia.xyz/derek/ej4-api-json/api/ping
 
 ## Tema
 

@@ -1,5 +1,9 @@
 {
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api" }
+  "builds": [
+    { "src": "api/index.go", "use": "@vercel/go" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/index" },
+    { "src": "/api", "dest": "/api/index" }
   ]
 }
